@@ -1,0 +1,20 @@
+@(models: Seq[MainModel])
+
+<ul>
+@for(model <- models) {
+	<li>
+	@model.repository.repoName
+		<ul>
+		@for(issue <- model.issues) {	
+			<li>			
+			@(issue.milestone.map(_.milestoneName) match {
+				case None =>  issue.issueName 
+				case Some(a) => Html("asdf<ul><li>qwer</li></ul>")
+			 }
+			)			
+			</li>
+		}
+		</ul>
+	</li>
+}
+</ul>

@@ -1,4 +1,4 @@
-name := """play-oauth2-scala"""
+name := """Github-Repo"""
 
 version := "1.0-SNAPSHOT"
 
