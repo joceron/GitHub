@@ -9,5 +9,5 @@ GET        /                       controllers.Application.index
 GET        /assets/*file           controllers.Assets.at(path="/public", file)
 
 # OAuth2 Stuff
-GET        /_oauth-callback        util.OAuth2.callback(code: Option[String], state: Option[String])
-GET        /_oauth-success         util.OAuth2.success
+GET        /_oauth-callback        util.AuthController.callback(code: Option[String], state: Option[String])
+GET        /_oauth-success         util.AuthController.success
