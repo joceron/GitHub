@@ -1,18 +1,12 @@
-OAuth2 Login and API with Play and Scala
-========================================
+Issues directory with GitHub API
+================================
 
-An example of using github to authorize login and also use the github API with an
-auth token. This is a typesafe activator template with a tutorial. If you aren't sure
-what that is, please look at
+This app follows the standard Play package structure. The main controller is OAuth2.scala, and here is where the data given by GitHub after a succeed login is processed.
 
-https://typesafe.com/activator
+Under Models.scala you can find all the necessary case classes for parsing between the JSON given by GitHub and our models.
 
-for more details. In a nutshell, to use this project:
+The view where all the information is displayed is contained inside repository.scala.html
 
-- Download Typesafe Activator from the above link
-- Run activator using "activator ui"
-- Clone this project (or find it and open it in Activator
-  with a search for play-oauth2-scala)
-- On the right of the activator UI, follow the tutorial. Hit > at the
-  top of the tutorial pane when you are ready the next page. Blue links
-  are active and take you to external resources or location in the code.
+The app was built using SBT, and can be run by using the standard 'sbt run' command.
+
+The first page displayed after accessing the URL redirects to GitHub, where the user will be asked to input his login information, and then it will be redirected back again to our app, where all the information about repositories and issues will be displayed.
