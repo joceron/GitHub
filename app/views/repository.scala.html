@@ -1,20 +1,24 @@
 @(models: Seq[MainModel])
 
 <ul>
-@for(model <- models) {
-	<li>
-	@model.repository.repoName
-		<ul>
-		@for(issue <- model.issues) {	
-			<li>			
-			@(issue.milestone.map(_.milestoneName) match {
-				case None =>  issue.issueName 
-				case Some(a) => Html("asdf<ul><li>qwer</li></ul>")
-			 }
-			)			
-			</li>
-		}
-		</ul>
-	</li>
-}
+    @models.groupBy(_.repository.owner.ownerName).map { case (owner, repositories) =>
+    <li>
+        @owner
+            <ul>
+                @repositories.map { repository =>
+                    <li>@repository.repository.repoName</li>
+                    <ul>
+                        @repository.issues.groupBy(_.milestone.milestoneName).map { case (milestone, issues) =>
+                        <li>@milestone</li>
+                        <ul>
+                            @issues.map { issue =>
+                            <li>@issue.issueName</li>
+                            }
+                        </ul>
+                        }
+                    </ul>
+                }
+            </ul>
+    </li>
+    }
 </ul>
