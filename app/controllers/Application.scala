@@ -5,11 +5,13 @@ import java.util.UUID
 import play.api.mvc._
 import play.api.Configuration
 import play.api.libs.ws._
+import play.api.db._
+
 import util.OAuth2
 
 import javax.inject._
 
-class Application @Inject()(configuration: Configuration, ws: WSClient) extends Controller {
+class Application @Inject()(configuration: Configuration, ws: WSClient, db: Database) extends Controller {
 
   def index = Action { implicit request =>
     val oauth2 = new OAuth2(configuration, ws)

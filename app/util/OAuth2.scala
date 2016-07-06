@@ -4,6 +4,10 @@ import play.api.http.{MimeTypes, HeaderNames}
 import play.api.libs.ws._
 import play.api.mvc.{Results, Action, Controller}
 import play.api.Configuration
+import play.api.db._
+import play.api.data._
+import play.api.data.Forms._
+import play.api.i18n._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -47,7 +51,7 @@ object GitHubAPI {
     get()
 }
 
-class AuthController @Inject()(configuration: Configuration, ws: WSClient) extends Controller {
+class AuthController @Inject()(val messagesApi: MessagesApi, configuration: Configuration, ws: WSClient, db: Database) extends Controller with I18nSupport {
   lazy val oauth2 = new OAuth2(configuration, ws)
 
   def callback(codeOpt: Option[String] = None, stateOpt: Option[String] = None) = Action.async { implicit request =>
@@ -81,9 +85,72 @@ class AuthController @Inject()(configuration: Configuration, ws: WSClient) exten
           }
         }
 
-        Future.sequence(futureModels).map(mainModel =>
-          Ok(views.html.repository(mainModel)))
+        val conn = db.getConnection()
+        try {
+          val stmt = conn.createStatement
+          val rs = stmt.executeQuery("SELECT ID, HOURS FROM TIMETABLE")
+
+          val dataFromDB = new Iterator[IssueHour] {
+            def hasNext = rs.next()
+
+            def next() = new IssueHour(rs.getLong("ID"), rs.getInt("HOURS"))
+          }.toList
+          val form = new FormModel(dataFromDB)
+
+          Future.sequence(futureModels).map(mainModel =>
+            Ok(views.html.repository(mainModel, FormModel.createFormModel.fill(form)))
+          )
+        } finally {
+          conn.close()
+        }
+      }
+    }
+  }
+
+  def processForm() = Action.async { implicit request =>
+    request.session.get("oauth-token").fold(Future.successful(Unauthorized("No way Jose"))) { authToken =>
+      val futureResponse = GitHubAPI.getRepos(authToken, ws)
+      futureResponse.flatMap { response =>
+        val repositories = response.json.as[Seq[Repository]]
+
+        val futureModels = for (repository <- repositories) yield {
+          GitHubAPI.getIssues(repository.repoName, repository.owner.ownerName, authToken, ws).map { response =>
+            val issues = response.json.as[Seq[Issue]]
+            MainModel(repository, issues)
+          }
+        }
+
+        val userData = FormModel.createFormModel.bindFromRequest.get.issuesHours
+
+        val conn = db.getConnection()
+        try {
+          val stmt = conn.createStatement
+          for (issueHour <- userData)
+            stmt.executeUpdate("UPDATE TIMETABLE SET HOURS=" + issueHour.time + " WHERE ID=" + issueHour.idIssue + ";")
+          val rs = stmt.executeQuery("SELECT ID, HOURS FROM TIMETABLE")
+          val dataFromDB = new Iterator[IssueHour] {
+            def hasNext = rs.next()
+
+            def next() = new IssueHour(rs.getLong("ID"), rs.getInt("HOURS"))
+          }.toList
+          val form = new FormModel(dataFromDB)
+
+          Future.sequence(futureModels).map(mainModel =>
+            Ok(views.html.repository(mainModel, FormModel.createFormModel.fill(form))))
+        } finally {
+          conn.close()
+        }
       }
     }
   }
 }
+
+//Useful code, maybe later
+//
+//val allIssuesIdModel = mainModel.flatMap(repository =>
+//  repository.issues.map(issue => issue.id)
+//)
+//val allIssuesIdDb = dataFromDB.map(issueHour => issueHour.idIssue)
+//val nonExistingIssues = allIssuesIdModel.filter(!allIssuesIdDb.contains(_))
+//val finalSeq = nonExistingIssues.map(issueId => new IssueHour(issueId,0)) ++ dataFromDB
+//val form = new FormModel(finalSeq)

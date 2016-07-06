@@ -4,6 +4,7 @@
 
 # Home page
 GET        /                       controllers.Application.index
+#POST       /                       controllers.Application.processForm
 
 # Map static resources from the /public folder to the /assets URL path
 GET        /assets/*file           controllers.Assets.at(path="/public", file)
@@ -11,3 +12,4 @@ GET        /assets/*file           controllers.Assets.at(path="/public", file)
 # OAuth2 Stuff
 GET        /_oauth-callback        util.AuthController.callback(code: Option[String], state: Option[String])
 GET        /_oauth-success         util.AuthController.success
+POST       /                       util.AuthController.processForm

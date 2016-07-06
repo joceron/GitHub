@@ -1,24 +1,39 @@
-@(models: Seq[MainModel])
+@(models: Seq[MainModel], formData: Form[FormModel])(implicit message: Messages)
 
-<ul>
-    @models.groupBy(_.repository.owner.ownerName).map { case (owner, repositories) =>
-    <li>
-        @owner
-            <ul>
-                @repositories.map { repository =>
+@helper.form(util.routes.AuthController.processForm) {
+    <ul>
+        @models.groupBy(_.repository.owner.ownerName).map { case (owner, repositories) =>
+            <li>
+                @owner
+                <ul>
+                    @repositories.map { repository =>
                     <li>@repository.repository.repoName</li>
                     <ul>
                         @repository.issues.groupBy(_.milestone.milestoneName).map { case (milestone, issues) =>
-                        <li>@milestone</li>
-                        <ul>
-                            @issues.map { issue =>
-                            <li>@issue.issueName</li>
-                            }
-                        </ul>
+                            <li>@milestone</li>
+                            <ul>
+                                @issues.map { issue =>
+                                    <li>@issue.issueName</li>
+                                    @helper.repeat(formData("issuesHours")) { issueHour =>
+                                        @if(issueHour("idIssue").value.contains(issue.id.toString)) {
+                                            @helper.inputText(issueHour("idIssue"),
+                                                '_label -> null,
+                                                'type -> "hidden"
+                                            )
+                                            @helper.inputText(issueHour("time"),
+                                                '_label -> null,
+                                                'type -> "number"
+                                            )
+                                        }
+                                    }
+                                }
+                            </ul>
                         }
                     </ul>
-                }
-            </ul>
-    </li>
-    }
-</ul>
+                    }
+                </ul>
+            </li>
+        }
+    </ul>
+    <input type="submit" value="Send data">
+}
