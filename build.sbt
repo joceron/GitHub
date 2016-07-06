@@ -11,5 +11,6 @@ libraryDependencies ++= Seq(
   cache,
   ws,
   evolutions,
-  "org.postgresql" % "postgresql" % "9.4.1208"
+  "org.postgresql" % "postgresql" % "9.4.1208",
+  "joda-time" % "joda-time" % "2.9.4"
 )

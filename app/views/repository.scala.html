@@ -13,7 +13,20 @@
                             <li>@milestone</li>
                             <ul>
                                 @issues.map { issue =>
-                                    <li>@issue.issueName</li>
+                                    <li>
+                                        <a href="@issue.URL">@issue.issueName</a>
+                                        @issue.labels.map { label =>
+                                            <span style="background-color: @label.color;">@label.text</span>
+                                        }
+                                        &emsp;
+                                        @issue.assignees.map { assignee =>
+                                            <img src="@assignee.pictureURL" height="20" width="20">
+                                        }
+                                        <br>
+                                        Created at: @issue.created
+                                        <br>
+                                        Last updated at: @issue.updated
+                                    </li>
                                     @helper.repeat(formData("issuesHours")) { issueHour =>
                                         @if(issueHour("idIssue").value.contains(issue.id.toString)) {
                                             @helper.inputText(issueHour("idIssue"),
